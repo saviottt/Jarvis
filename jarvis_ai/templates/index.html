@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J.A.R.V.I.S // MARK VII HUD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="theme-jarvis">
+  <div class="hud-scanlines"></div>
+  <canvas id="gridCanvas" class="hud-canvas"></canvas>
+
+  <main class="hud-viewport">
+    <!-- TOP TELEMETRY BAR -->
+    <header class="hud-header">
+      <div class="hud-top-left">
+        <div class="tech-tag"><span class="indicator"></span> MK-VII // SYSTEM ONLINE</div>
+        <div class="telemetry-sub">SYS: 127.0.0.1 · ENCRYPTION: 256-BIT · SECURE NODE</div>
+      </div>
+
+      <!-- TOP RIGHT: CLOCK, STATUS & PERSONALITY WIDGET (Matching user reference) -->
+      <div class="hud-top-right">
+        <div class="hud-clock-group">
+          <div class="hud-clock">
+            <span id="clockTime">18:00</span><span id="clockSeconds" class="clock-sec">17</span>
+          </div>
+          <div class="hud-status-line">ALL SYSTEMS NOMINAL</div>
+          <div id="systemState" class="hud-state-pill">IDLE</div>
+        </div>
+
+        <div class="personality-widget">
+          <div class="widget-header">
+            <span class="icon">⚙</span> PERSONALITY
+          </div>
+          <div class="personality-option active" id="optJarvis" data-personality="jarvis">
+            <span class="name">J.A.R.V.I.S</span>
+            <span class="dot"></span>
+          </div>
+          <div class="personality-option" id="optFriday" data-personality="friday">
+            <span class="name">F.R.I.D.A.Y</span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CENTER HERO: ARC REACTOR INTERACTIVE CORE -->
+    <section class="hud-center">
+      <div class="reactor-container" id="reactorButton" role="button" tabindex="0" title="Click core to engage continuous voice listening">
+        <!-- SVG ARC REACTOR HUD -->
+        <svg class="reactor-svg" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="14" result="blur1" />
+              <feGaussianBlur stdDeviation="28" result="blur2" />
+              <feMerge>
+                <feMergeNode in="blur2" />
+                <feMergeNode in="blur1" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <linearGradient id="cyanArcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00f2fe" />
+              <stop offset="100%" stop-color="#0077b6" />
+            </linearGradient>
+            <linearGradient id="goldArcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fef08a" />
+              <stop offset="100%" stop-color="#eab308" />
+            </linearGradient>
+          </defs>
+
+          <!-- Outer Ticks Ring (Slow Clockwise Rotation) -->
+          <g class="ring ring-outer-ticks" id="ringOuterTicks">
+            <circle cx="250" cy="250" r="236" fill="none" stroke="rgba(0, 242, 254, 0.15)" stroke-width="1.5" />
+            <circle cx="250" cy="250" r="226" fill="none" stroke="rgba(0, 242, 254, 0.3)" stroke-width="2" stroke-dasharray="2, 6" />
+            <!-- Radial tick marks dynamically populated via JS -->
+            <g id="svgTicksGroup"></g>
+          </g>
+
+          <!-- Outer Segmented Calipers Ring (Counter-Clockwise) -->
+          <g class="ring ring-calipers" id="ringCalipers">
+            <circle cx="250" cy="250" r="212" fill="none" stroke="rgba(0, 242, 254, 0.25)" stroke-width="1" />
+            <!-- Segmented Calipers -->
+            <path d="M 250,38 A 212,212 0 0,1 462,250" fill="none" stroke="rgba(0, 242, 254, 0.45)" stroke-width="5" stroke-dasharray="16, 20, 8, 30" />
+            <path d="M 250,462 A 212,212 0 0,1 38,250" fill="none" stroke="rgba(0, 242, 254, 0.45)" stroke-width="5" stroke-dasharray="24, 12, 10, 18" />
+          </g>
+
+          <!-- Signature Cyan & Yellow Primary Arc Ring (Matching user image) -->
+          <g class="ring ring-main-arcs" id="ringMainArcs">
+            <!-- Background track -->
+            <circle cx="250" cy="250" r="185" fill="none" stroke="rgba(0, 180, 216, 0.18)" stroke-width="18" />
+            <!-- Cyan segment arc -->
+            <circle cx="250" cy="250" r="185" fill="none" stroke="url(#cyanArcGrad)" stroke-width="20" stroke-dasharray="380, 800" stroke-linecap="round" filter="url(#glow)" />
+            <!-- Gold Accent Arc (Top-Left quadrant like in screenshot) -->
+            <path d="M 125,125 A 185,185 0 0,1 250,65" fill="none" stroke="url(#goldArcGrad)" stroke-width="8" stroke-linecap="round" filter="url(#glow)" class="gold-arc" />
+            <!-- Glowing Orbiting Dots -->
+            <circle cx="370" cy="180" r="4.5" fill="#facc15" filter="url(#glow)" class="orbit-dot dot-yellow" />
+            <circle cx="380" cy="235" r="4.5" fill="#facc15" filter="url(#glow)" class="orbit-dot dot-yellow2" />
+            <circle cx="365" cy="290" r="4" fill="#00f2fe" filter="url(#glow)" class="orbit-dot dot-cyan" />
+            <circle cx="230" cy="435" r="4.5" fill="#00f2fe" filter="url(#glow)" class="orbit-dot dot-cyan2" />
+          </g>
+
+          <!-- Middle Inner Precision Gauge (Clockwise) -->
+          <g class="ring ring-inner-gauge" id="ringInnerGauge">
+            <circle cx="250" cy="250" r="148" fill="none" stroke="rgba(0, 242, 254, 0.35)" stroke-width="1.5" />
+            <circle cx="250" cy="250" r="142" fill="none" stroke="rgba(0, 242, 254, 0.7)" stroke-width="3" stroke-dasharray="4, 12" />
+            <circle cx="250" cy="250" r="132" fill="none" stroke="rgba(0, 242, 254, 0.2)" stroke-width="1" />
+          </g>
+
+          <!-- Glowing Audio Pulse Ring (Scales on sound/voice) -->
+          <circle id="audioPulseRing" cx="250" cy="250" r="110" fill="none" stroke="rgba(0, 242, 254, 0.6)" stroke-width="2" filter="url(#glow)" />
+
+          <!-- Center Gyroscope Wireframe Rings -->
+          <g class="gyro-group" id="gyroGroup">
+            <ellipse cx="250" cy="250" rx="90" ry="40" fill="none" stroke="rgba(0, 242, 254, 0.45)" stroke-width="1.5" class="gyro-ring ring-1" />
+            <ellipse cx="250" cy="250" rx="90" ry="40" fill="none" stroke="rgba(0, 242, 254, 0.4)" stroke-width="1.5" class="gyro-ring ring-2" />
+            <circle cx="250" cy="250" r="80" fill="rgba(4, 16, 32, 0.85)" stroke="rgba(0, 242, 254, 0.6)" stroke-width="2" filter="url(#glow)" />
+          </g>
+
+          <!-- Glowing Central Core Hub -->
+          <circle cx="250" cy="250" r="68" fill="radial-gradient(circle, rgba(0, 242, 254, 0.4) 0%, rgba(3, 10, 22, 0.9) 70%)" />
+        </svg>
+
+        <!-- Center Typography -->
+        <div class="core-overlay">
+          <div class="core-title" id="coreLabel">J.A.R.V.I.S</div>
+          <div class="core-sub" id="corePrompt">CLICK CORE TO ENGAGE</div>
+          <div class="voice-wave-bars" id="voiceWaveBars">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOLOGRAPHIC TRANSCRIPT & SUBTITLE STREAM -->
+      <div class="hud-stream-container">
+        <div class="stream-line user-line" id="userStreamLine" style="display: none;">
+          <span class="tag">USER //</span>
+          <span class="msg" id="userTranscript"></span>
+        </div>
+        <div class="stream-line ai-line" id="aiStreamLine">
+          <span class="tag" id="aiTag">JARVIS //</span>
+          <span class="msg typing" id="aiResponse">All systems nominal. Click the core or speak to initialize directive.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM HUD BAR & COMMAND TRANSMISSION -->
+    <footer class="hud-footer">
+      <div class="hud-bottom-left">
+        <span class="tele-item"><span class="bullet">▪</span> STATE: <b id="footerState">IDLE</b></span>
+        <span class="tele-item"><span class="bullet">▪</span> PANELS: <b>ACTIVE</b></span>
+        <span class="tele-item"><span class="bullet">▪</span> NODE: <b>SECURE</b></span>
+      </div>
+
+      <!-- Sleek HUD Terminal Command Line -->
+      <div class="hud-terminal-container">
+        <form id="hudCommandForm" class="hud-command-form">
+          <span class="term-prompt">&gt;</span>
+          <input type="text" id="commandInput" autocomplete="off" placeholder="TRANSMIT DIRECTIVE TO JARVIS..." aria-label="Command">
+          <button type="submit" id="transmitBtn" class="hud-send-btn">TRANSMIT</button>
+        </form>
+
+        <div class="hud-controls-dock">
+          <button id="btnVoiceToggle" class="dock-btn" title="Toggle Continuous Listening">
+            <span class="btn-dot"></span> <span id="voiceBtnLabel">VOICE: OFF</span>
+          </button>
+          <button id="btnStopVoice" class="dock-btn stop-btn" title="Stop Voice & Audio Output">
+            <span>⏹</span> STOP
+          </button>
+          <button id="btnAudioToggle" class="dock-btn" title="Toggle Spoken Responses">
+            <span id="audioIcon">🔊</span> <span id="audioLabel">SPEECH: ON</span>
+          </button>
+          <button id="btnHistoryToggle" class="dock-btn" title="View Recent Directives">
+            <span>📜</span> LOG (<span id="logCount">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <div class="hud-bottom-right">
+        <span class="tele-item">MODEL: <b id="hudModel">GEMINI-3.5-FLASH-LITE</b></span>
+        <span class="tele-item">AUDIO STREAM: <b id="audioStreamState">STANDBY</b></span>
+      </div>
+    </footer>
+
+    <!-- SLIDE-OUT LOG DRAWER (Hidden by default to keep UI completely uncluttered) -->
+    <aside class="hud-log-drawer" id="logDrawer">
+      <div class="drawer-header">
+        <span>// DIRECTIVE LOG TELEMETRY</span>
+        <button id="btnCloseDrawer" class="close-drawer">&times;</button>
+      </div>
+      <div class="drawer-content" id="logHistoryList">
+        <div class="log-entry system">
+          <span class="log-time">[BOOT]</span>
+          <span class="log-text">Jarvis Mark VII HUD interface initialized.</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
